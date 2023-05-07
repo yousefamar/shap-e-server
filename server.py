@@ -76,13 +76,13 @@ def download(filename):
     with open(ply_filename, 'wb') as f:
       decode_latent_mesh(xm, latent).tri_mesh().write_ply(f)
 
-      mesh = trimesh.load(f.name)
-      rot = trimesh.transformations.rotation_matrix(-math.pi / 2, [1, 0, 0])
-      mesh = mesh.apply_transform(rot)
-      rot = trimesh.transformations.rotation_matrix(math.pi, [0, 1, 0])
-      mesh = mesh.apply_transform(rot)
+    mesh = trimesh.load(f.name)
+    rot = trimesh.transformations.rotation_matrix(-math.pi / 2, [1, 0, 0])
+    mesh = mesh.apply_transform(rot)
+    rot = trimesh.transformations.rotation_matrix(math.pi, [0, 1, 0])
+    mesh = mesh.apply_transform(rot)
 
-      mesh.export(glb_filename, file_type='glb')
+    mesh.export(glb_filename, file_type='glb')
 
   # Send the newly-generated file to the client for download
   return send_file(ply_filename if is_ply else glb_filename, as_attachment=True)
