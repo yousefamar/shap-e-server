@@ -44,8 +44,10 @@ def generateModel(model_name):
 
 @app.route('/models/<string:filename>')
 def download(filename):
+  is_ply = filename.endswith('.ply')
+  is_glb = filename.endswith('.glb')
   # return 400 if the filename does not end with ".ply" or ".glb"
-  if not filename.endswith('.ply') and not filename.endswith('.glb'):
+  if not is_ply and not is_glb:
     return 'Invalid filename', 400
 
   # Extract the name of the model (i.e. "cat" from "cat.ply")
@@ -54,19 +56,24 @@ def download(filename):
   print(f"Query for model: {model_name}")
 
   # Check if the file already exists in the cache directory
-  cache_filename = os.path.join(MODEL_CACHE_DIR, f"{model_name}.ply")
+  ply_filename = os.path.join(MODEL_CACHE_DIR, f"{model_name}.ply")
   glb_filename = os.path.join(MODEL_CACHE_DIR, f"{model_name}.glb")
-  if os.path.exists(cache_filename):
-    print(f"Found cached model: {cache_filename}")
+  if is_ply and os.path.exists(ply_filename):
+    print(f"Found cached model: {ply_filename}")
     # Send the cached file to the client for download
-    return send_file(cache_filename, as_attachment=True)
+    return send_file(ply_filename, as_attachment=True)
+
+  if is_glb and os.path.exists(glb_filename):
+    print(f"Found cached model: {glb_filename}")
+    # Send the cached file to the client for download
+    return send_file(glb_filename, as_attachment=True)
 
   # Generate the model
   print(f"Generating model: {model_name}")
   latents = generateModel(model_name)
 
   for i, latent in enumerate(latents):
-    with open(cache_filename, 'wb') as f:
+    with open(ply_filename, 'wb') as f:
       decode_latent_mesh(xm, latent).tri_mesh().write_ply(f)
 
       mesh = trimesh.load(f.name)
@@ -78,7 +85,7 @@ def download(filename):
       mesh.export(glb_filename, file_type='glb')
 
   # Send the newly-generated file to the client for download
-  return send_file(cache_filename if filename.endswith('.ply') else glb_filename, as_attachment=True)
+  return send_file(ply_filename if is_ply else glb_filename, as_attachment=True)
 
 def main():
   # Ensure the model cache directory exists
