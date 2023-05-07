@@ -41,6 +41,10 @@ def generateModel(model_name):
 
 @app.route('/models/<string:filename>')
 def download(filename):
+  # return 400 if the filename does not end with ".ply"
+  if not filename.endswith('.ply'):
+    return 'Invalid filename', 400
+
   # Extract the name of the model (i.e. "cat" from "cat.ply")
   model_name = os.path.splitext(filename)[0]
 
