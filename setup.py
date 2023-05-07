@@ -31,6 +31,8 @@ setup(
         "numpy",
         "blobfile",
         "clip @ git+https://github.com/openai/CLIP.git",
+        "flask",
+        "ipywidgets",
     ],
     author="OpenAI",
 )
