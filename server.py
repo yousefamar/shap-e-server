@@ -69,7 +69,7 @@ def main():
   os.makedirs(MODEL_CACHE_DIR, exist_ok=True)
 
   # Start the Flask app
-  app.run(port=8080)
+  app.run(debug=True, port=8081, host='0.0.0.0')
 
 if __name__ == '__main__':
   main()
