@@ -41,15 +41,20 @@ def generateModel(model_name):
 
 @app.route('/models/<string:filename>')
 def download(filename):
-  # Extract the name of the model (i.e. "cat" from "cat.txt")
+  # Extract the name of the model (i.e. "cat" from "cat.ply")
   model_name = os.path.splitext(filename)[0]
+
+  print(f"Query for model: {model_name}")
 
   # Check if the file already exists in the cache directory
   cache_filename = os.path.join(MODEL_CACHE_DIR, f"{model_name}.ply")
   if os.path.exists(cache_filename):
+    print(f"Found cached model: {cache_filename}")
     # Send the cached file to the client for download
     return send_file(cache_filename, as_attachment=True)
 
+  # Generate the model
+  print(f"Generating model: {model_name}")
   latents = generateModel(model_name)
 
   for i, latent in enumerate(latents):
@@ -64,7 +69,7 @@ def main():
   os.makedirs(MODEL_CACHE_DIR, exist_ok=True)
 
   # Start the Flask app
-  app.run(debug=True, port=8080, host='0.0.0.0')
+  app.run(port=8080)
 
 if __name__ == '__main__':
   main()
