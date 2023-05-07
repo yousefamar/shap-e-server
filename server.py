@@ -1,6 +1,8 @@
 from flask import Flask, request, send_file
 import os
 import torch
+import trimesh
+import math
 
 from shap_e.diffusion.sample import sample_latents
 from shap_e.diffusion.gaussian_diffusion import diffusion_from_config
@@ -15,6 +17,7 @@ diffusion = diffusion_from_config(load_config('diffusion'))
 app = Flask(__name__)
 
 MODEL_CACHE_DIR = 'model-cache'
+PI = 3.14159265359
 
 def generateModel(model_name):
   batch_size = 4
@@ -41,8 +44,8 @@ def generateModel(model_name):
 
 @app.route('/models/<string:filename>')
 def download(filename):
-  # return 400 if the filename does not end with ".ply"
-  if not filename.endswith('.ply'):
+  # return 400 if the filename does not end with ".ply" or ".glb"
+  if not filename.endswith('.ply') and not filename.endswith('.glb'):
     return 'Invalid filename', 400
 
   # Extract the name of the model (i.e. "cat" from "cat.ply")
@@ -52,6 +55,7 @@ def download(filename):
 
   # Check if the file already exists in the cache directory
   cache_filename = os.path.join(MODEL_CACHE_DIR, f"{model_name}.ply")
+  glb_filename = os.path.join(MODEL_CACHE_DIR, f"{model_name}.glb")
   if os.path.exists(cache_filename):
     print(f"Found cached model: {cache_filename}")
     # Send the cached file to the client for download
@@ -65,8 +69,16 @@ def download(filename):
     with open(cache_filename, 'wb') as f:
       decode_latent_mesh(xm, latent).tri_mesh().write_ply(f)
 
+      mesh = trimesh.load(f.name)
+      rot = trimesh.transformations.rotation_matrix(-math.pi / 2, [1, 0, 0])
+      mesh = mesh.apply_transform(rot)
+      rot = trimesh.transformations.rotation_matrix(math.pi, [0, 1, 0])
+      mesh = mesh.apply_transform(rot)
+
+      mesh.export(glb_filename, file_type='glb')
+
   # Send the newly-generated file to the client for download
-  return send_file(cache_filename, as_attachment=True)
+  return send_file(cache_filename if filename.endswith('.ply') else glb_filename, as_attachment=True)
 
 def main():
   # Ensure the model cache directory exists

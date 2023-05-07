@@ -33,6 +33,7 @@ setup(
         "clip @ git+https://github.com/openai/CLIP.git",
         "flask",
         "ipywidgets",
+        "trimesh",
     ],
     author="OpenAI",
 )
