@@ -34,6 +34,7 @@ setup(
         "flask",
         "ipywidgets",
         "trimesh",
+        "yaml",
     ],
     author="OpenAI",
 )
